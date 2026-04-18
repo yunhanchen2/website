@@ -50,6 +50,12 @@
     background-repeat: no-repeat;
     box-shadow: 0 20px 60px -20px rgba(58, 47, 34, 0.25);
     border-radius: 2px;
+    filter: url(#roomFlow);
+    transition: filter 0.6s ease;
+  }
+
+  .room.still {
+    filter: none;
   }
 
   .hotspot {
@@ -588,6 +594,18 @@
 </head>
 <body>
 
+<!-- SVG 滤镜:水彩流动效果 -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="roomFlow">
+      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="1">
+        <animate attributeName="baseFrequency" dur="10s" values="0.012 0.018; 0.018 0.012; 0.012 0.018" repeatCount="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" scale="8"/>
+    </filter>
+  </defs>
+</svg>
+
 <div class="brand">
   <div class="avatar" role="img" aria-label="Yunhan Chen"></div>
   <div class="text">
@@ -866,6 +884,21 @@
       lightbox.classList.remove('open');
     });
   }
+
+  // 流沙效果:悬停热区时房间静止,移开2秒后恢复流动
+  const roomEl = document.querySelector('.room');
+  let stillTimer = null;
+  hotspots.forEach(h => {
+    h.addEventListener('mouseenter', () => {
+      if (stillTimer) clearTimeout(stillTimer);
+      roomEl.classList.add('still');
+    });
+    h.addEventListener('mouseleave', () => {
+      stillTimer = setTimeout(() => {
+        roomEl.classList.remove('still');
+      }, 2000);
+    });
+  });
 </script>
 </body>
 </html>
