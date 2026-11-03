@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,161 +15,137 @@
     --line: rgba(139, 111, 71, 0.3);
   }
 
+  html { background: #fff; }
+
   html, body {
-    height: 100%;
-    background: var(--paper);
-    font-family: 'Cormorant Garamond', 'Songti SC', 'Noto Serif SC', Georgia, serif;
-    color: var(--ink);
+    font-family: Avenir, 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
+    color: #1a1a1a;
     overflow-x: hidden;
   }
 
-  .stage {
-    position: relative;
-    width: 100vw;
-    min-height: 100vh;
+  /* 页眉导航 */
+  .topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.94);
+    z-index: 50;
+  }
+  .topbar nav {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 1.6rem 3rem;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem 1rem;
-    overflow: hidden;
+    justify-content: flex-end;
+    gap: 4.5rem;
   }
-
-  .stage > .room {
-    position: relative;
-    z-index: 1;
-  }
-
-  .room {
-    position: relative;
-    width: 100%;
-    max-width: 1200px;
-    aspect-ratio: 1377 / 768;
-    background-image: url('room.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    box-shadow: 0 20px 60px -20px rgba(58, 47, 34, 0.25);
-    border-radius: 2px;
-    filter: url(#roomFlow);
-    transition: filter 0.6s ease;
-  }
-
-  .room.still {
-    filter: none;
-  }
-
-  .hotspot {
-    position: absolute;
+  .topbar a {
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    color: #1a1a1a;
+    text-decoration: none;
+    padding-bottom: 3px;
+    border-bottom: 0.5px solid transparent;
     cursor: pointer;
-    background: transparent;
   }
+  .topbar a:hover,
+  .topbar a.active { border-bottom-color: #1a1a1a; }
 
-  /* 真正发光的"内层":定位在物件本体上 */
-  .hotspot .glow {
-    position: absolute;
-    inset: 0;
-    transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-    background: rgba(255, 255, 255, 0);
-    pointer-events: none;
-  }
+  .view { display: none; }
+  .view.active { display: block; }
 
-  .hotspot:hover .glow {
-    background: rgba(255, 248, 225, 0.18);
-    box-shadow: 0 0 40px 8px rgba(255, 240, 200, 0.28);
-  }
-
-  .hotspot .tag {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: -44px;
-    font-style: italic;
-    font-weight: 500;
-    font-size: 26px;
-    letter-spacing: 0.25em;
-    color: var(--ink);
-    opacity: 1;
-    transition: transform 0.3s ease, letter-spacing 0.3s ease;
-    white-space: nowrap;
-    text-shadow:
-      0 0 10px rgba(244, 238, 228, 1),
-      0 0 20px rgba(244, 238, 228, 0.9),
-      0 1px 3px rgba(58, 47, 34, 0.2);
-    pointer-events: none;
-  }
-
-  .hotspot:hover .tag {
-    letter-spacing: 0.35em;
-    transform: translateX(-50%) translateY(-2px);
-  }
-
-  /* 外层热区包含物件+标签,避免hover闪烁 */
-  .h-photos    { left: 2.9%;  top: 5.2%;  width: 39.2%; height: 91%; }
-  .h-about     { left: 46%;   top: 13%;   width: 12%;   height: 28%; }
-  .h-paintings { left: 41%;   top: 48%;   width: 20%;   height: 30%; }
-  .h-flowers   { left: 59%;   top: 30%;   width: 38%;   height: 52%; }
-
-  /* 内层光晕只对准物件本体 */
-  .h-photos    .glow { inset: 0; }
-  .h-about     .glow { left: 16%; top: 14%;  right: 16%; bottom: 52%; }
-  .h-paintings .glow { left: 7%;  top: 5%;   right: 7%;  bottom: 22%; }
-  .h-flowers   .glow { left: 5%;  top: 15%;  right: 5%;  bottom: 23%; }
-
-  .h-flowers .tag { bottom: auto; top: -40px; }
-  .h-about .tag { bottom: -36px; }
-
-  .brand {
+  /* More 背景画:固定在右下角,往左上淡开 */
+  #view-more::before {
+    content: '';
     position: fixed;
-    top: 1.8rem;
-    left: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    z-index: 5;
-  }
-  .brand .avatar {
-    width: 72px;
-    height: 72px;
-    border-radius: 2px;
-    background-image: url('avatar.jpg');
+    z-index: -1;
+    right: 0;
+    bottom: 0;
+    width: min(95vw, 1300px);
+    height: min(95vh, 1000px);
+    background-repeat: no-repeat;
     background-size: cover;
-    background-position: center;
-    border: 0.5px solid var(--line);
-    box-shadow: 0 2px 10px -2px rgba(58, 47, 34, 0.2);
-    flex-shrink: 0;
+    background-position: right bottom;
+    opacity: 0.35;
+    -webkit-mask-image: radial-gradient(ellipse 100% 100% at 100% 100%, #000 25%, transparent 75%);
+            mask-image: radial-gradient(ellipse 100% 100% at 100% 100%, #000 25%, transparent 75%);
+    pointer-events: none;
   }
-  .brand .text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.3;
-  }
-  .brand .name {
-    font-style: italic;
-    font-size: 17px;
-    letter-spacing: 0.05em;
-    color: var(--ink);
-  }
-  .brand .sub {
-    font-size: 10px;
-    letter-spacing: 0.3em;
-    color: var(--ink-soft);
-    opacity: 0.7;
-    text-transform: uppercase;
-    margin-top: 3px;
+  /* 染一点暖米色 */
+  #view-more::before {
+    background-image: url('textures/more.jpg');
+    filter: sepia(0.35);
   }
 
-  .hint {
-    position: fixed;
-    bottom: 1.5rem;
-    left: 50%;
-    transform: translateX(-50%);
-    font-style: italic;
-    font-size: 12px;
-    letter-spacing: 0.25em;
-    color: var(--ink-soft);
-    opacity: 0.55;
-    z-index: 5;
+  /* 主页:照模版的左右两栏 */
+  .sheet {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 9rem 3rem 6rem;
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    column-gap: 6rem;
   }
+
+  .sheet .label {
+    text-align: right;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.7;
+  }
+
+  .portrait {
+    margin-top: 5.5rem;
+  }
+  .portrait img {
+    width: 100%;
+    display: block;
+    filter: brightness(1.05) contrast(0.88);
+  }
+  .portrait figcaption {
+    margin-top: 1.6rem;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  .statement p + p { margin-top: 1.4rem; }
+  .statement-label {
+    margin-top: 3rem;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .hobbies { list-style: none; margin-top: 0.6rem; }
+  .timeline-list { list-style: none; margin-top: 1.4rem; }
+  .timeline-list span { display: inline-block; width: 7em; color: #888; }
+  .hobbies span { color: #888; margin-left: 0.8em; }
+
+  .statement {
+    font-size: 12.5px;
+    line-height: 2.1;
+    text-align: left;
+  }
+
+  /* More 页 */
+  .more {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 9rem 3rem 6rem;
+  }
+  .more a {
+    display: block;
+    width: fit-content;
+    font-size: 22px;
+    letter-spacing: 0.08em;
+    color: #1a1a1a;
+    text-decoration: none;
+    margin-bottom: 1.8rem;
+    cursor: pointer;
+  }
+  .page.page-food { background: #fff; }
+  .empty-note { font-size: 14px; letter-spacing: 0.1em; color: #888; }
+
+  .more a:hover { text-decoration: underline; text-underline-offset: 4px; }
 
   .page {
     position: fixed;
@@ -201,7 +177,6 @@
     margin-bottom: 0.6rem;
   }
   .page-header h1 {
-    font-style: italic;
     font-weight: 400;
     font-size: 42px;
     letter-spacing: 0.02em;
@@ -210,244 +185,124 @@
 
   .back {
     position: fixed;
-    top: 1.5rem;
-    left: 1.5rem;
-    background: rgba(244, 238, 228, 0.85);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 0.5px solid var(--line);
+    top: 1.8rem;
+    left: 2rem;
+    background: none;
+    border: none;
     font-family: inherit;
-    font-style: italic;
-    font-size: 13px;
-    letter-spacing: 0.15em;
-    color: var(--ink);
+    font-size: 16px;
+    letter-spacing: 0.12em;
+    color: #1a1a1a;
     cursor: pointer;
-    padding: 0.6rem 1rem;
-    border-radius: 2px;
+    padding: 0 0 3px;
+    border-bottom: 0.5px solid transparent;
     z-index: 110;
-    transition: all 0.3s;
-    box-shadow: 0 2px 8px -2px rgba(58, 47, 34, 0.15);
+    transition: border-color 0.3s;
   }
-  .back:hover {
-    background: rgba(244, 238, 228, 0.98);
-    color: var(--ink);
-    box-shadow: 0 4px 12px -2px rgba(58, 47, 34, 0.22);
-  }
+  .back:hover { border-bottom-color: #1a1a1a; }
   .back::before { content: '← '; }
 
-  .grid {
+
+  .page.page-paintings-bg { background: #fff; }
+
+  /* flowers:白底,一排两张,图片统一裁成竖幅,下面一行名字 */
+  .page.page-flowers { background: #fff; }
+  .flowers-inner { max-width: 860px; }
+  #page-flowers .page-inner { padding-top: 8rem; padding-bottom: 8rem; }
+  #page-flowers .page-header { margin-bottom: 5rem; }
+  #page-flowers .page-header h1 { font-size: 16px; letter-spacing: 0.12em; font-style: italic; }
+  .flower-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 2.5rem 2rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.5rem;
   }
-  .item { display: flex; flex-direction: column; gap: 0.6rem; }
-  .item .thumb {
+  .flower { cursor: zoom-in; }
+  .flower img {
     width: 100%;
     aspect-ratio: 4 / 5;
-    background: #e8dfd0;
-    border: 0.5px solid var(--line);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--ink-soft);
-    font-style: italic;
+    object-fit: cover;
+    display: block;
+  }
+  @media (max-width: 640px) {
+    .flower-grid { grid-template-columns: minmax(0, 1fr); gap: 2.5rem; }
+  }
+
+  .paintings-inner { max-width: 1080px; }
+  #page-paintings .page-inner { padding-top: 8rem; padding-bottom: 8rem; }
+  #page-paintings .page-header { margin-bottom: 5rem; }
+  #page-paintings .page-header h1 { font-size: 16px; letter-spacing: 0.12em; font-style: italic; }
+
+  /* paintings 瀑布流:每张画放在浅灰底板上,下面一行小字说明 */
+  .gallery { display: flex; gap: 3.5rem; align-items: flex-start; }
+  .gallery-col { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4rem; }
+  .art { cursor: zoom-in; }
+  .art .mat {
+    background: #f3f3f2;
+    padding: 11%;
+  }
+  .art img {
+    width: 100%;
+    height: auto;
+    display: block;
+    box-shadow: 0 2px 8px -3px rgba(0, 0, 0, 0.18);
+    transition: transform 0.4s ease;
+  }
+  .art:hover img { transform: translateY(-3px); }
+  /* 单独展出的画:像主页一样左画右字,上下大留白 */
+  .feature {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    column-gap: 5rem;
+    align-items: end;
+    margin: 9rem 0;
+  }
+  .wall-label {
+    font-size: 12px;
+    line-height: 1.9;
+    color: #1a1a1a;
+    max-width: 300px;
+  }
+  .wall-label h3 {
     font-size: 13px;
-    letter-spacing: 0.1em;
+    font-weight: 600;
+    letter-spacing: 0.04em;
   }
-  .item .label { font-size: 13px; color: var(--ink); font-style: italic; }
-  .item .meta { font-size: 11px; letter-spacing: 0.2em; color: var(--ink-soft); opacity: 0.7; }
-
-  .paper { padding: 1.5rem 0; border-bottom: 0.5px solid var(--line); }
-  .paper:last-child { border-bottom: none; }
-  .paper .year { font-size: 11px; letter-spacing: 0.3em; color: var(--ink-soft); margin-bottom: 0.4rem; }
-  .paper h3 { font-style: italic; font-weight: 400; font-size: 20px; line-height: 1.4; margin-bottom: 0.4rem; }
-  .paper .authors { font-size: 13px; color: var(--ink-soft); margin-bottom: 0.4rem; }
-  .paper .venue { font-size: 12px; color: var(--ink-soft); font-style: italic; }
-  .paper a { color: var(--ink); text-decoration: none; border-bottom: 0.5px solid var(--line); }
-  .paper a:hover { border-bottom-color: var(--ink); }
-
-  /* random things 留白页 */
-  .coming-soon {
-    text-align: center;
-    padding: 4rem 0;
-    font-style: italic;
-  }
-  .coming-soon p {
-    font-size: 22px;
-    color: var(--ink);
-    line-height: 1.6;
-    margin: 0;
-  }
-  .coming-soon .soon-sub {
-    font-size: 14px;
-    letter-spacing: 0.2em;
-    color: var(--ink-soft);
-    margin-top: 1.2rem;
-  }
-
-  .about-body { font-size: 17px; line-height: 1.9; color: var(--ink); max-width: 640px; }
-  .about-body p { margin-bottom: 1.2rem; }
-  .about-body em { color: var(--ink-soft); }
-
-  /* about 页 */
-  .about-inner { max-width: 760px; position: relative; z-index: 1; }
-
-  .page-about-bg::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url('textures/about-chair.jpg');
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-    opacity: 0.22;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .about-intro {
-    font-size: 18px;
-    line-height: 1.8;
-    color: var(--ink);
-    font-style: italic;
-    margin-bottom: 5rem;
-    max-width: 580px;
-  }
-
-  /* 时间轴 */
-  .timeline {
-    position: relative;
-    padding-left: 2.5rem;
-    margin-bottom: 5rem;
-  }
-  .timeline::before {
-    content: '';
-    position: absolute;
-    left: 8px;
-    top: 8px;
-    bottom: 8px;
-    width: 0.5px;
-    background: var(--line);
-  }
-
-  .tl-stop {
-    position: relative;
-    padding-bottom: 3rem;
-  }
-  .tl-stop:last-child { padding-bottom: 0; }
-
-  .tl-stop::before {
-    content: '';
-    position: absolute;
-    left: -2.5rem;
-    top: 10px;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: var(--paper);
-    border: 0.5px solid var(--ink-soft);
-    margin-left: 3.5px;
-  }
-
-  .tl-year {
-    font-size: 11px;
-    letter-spacing: 0.3em;
-    color: var(--ink-soft);
-    margin-bottom: 0.4rem;
-    text-transform: uppercase;
-  }
-  .tl-city {
-    font-style: italic;
-    font-size: 28px;
-    color: var(--ink);
-    margin-bottom: 0.6rem;
+  .wall-label h3 .sub {
+    font-weight: 400;
+    color: #777;
     letter-spacing: 0.02em;
   }
-  .tl-note {
-    font-size: 15px;
-    line-height: 1.7;
-    color: var(--ink-soft);
-    margin-bottom: 1.2rem;
-    font-style: italic;
+  .wall-label .meta {
+    color: #777;
+    margin-bottom: 1.8rem;
   }
-  .tl-food {
-    font-size: 14px;
-    line-height: 1.75;
-    color: var(--ink);
+  .wall-label blockquote {
+    margin-top: 1.2rem;
     padding-left: 1rem;
-    border-left: 0.5px solid var(--line);
-    max-width: 460px;
+    border-left: 0.5px solid #bbb;
+    color: #555;
   }
-  .food-kicker {
-    display: block;
-    font-size: 10px;
-    letter-spacing: 0.3em;
-    color: var(--ink-soft);
-    margin-bottom: 0.4rem;
-    text-transform: uppercase;
-    font-style: normal;
-  }
-  .food-side {
-    color: var(--ink-soft);
-    font-style: italic;
-    font-size: 13px;
+  /* 竖幅画:画栏窄一点,不然太高 */
+  .feature-portrait { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+  /* 左右镜像:展签在左(右对齐),画在右,和下一张错开 */
+  .feature-reverse { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); }
+  .feature-reverse.feature-portrait { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+  .feature-reverse .wall-label { order: -1; justify-self: end; text-align: right; }
+  .feature-reverse .wall-label blockquote { padding-left: 0; padding-right: 1rem; border-left: none; border-right: 0.5px solid #bbb; }
+  /* 两张单独展出的画挨着时,中间不用留双倍空白 */
+  .feature + .feature { margin-top: 0; }
+  @media (max-width: 760px) {
+    .feature, .feature.feature-portrait, .feature.feature-reverse { grid-template-columns: minmax(0, 1fr); row-gap: 2rem; margin: 5rem 0; }
+    .feature-reverse .wall-label { order: 0; justify-self: start; text-align: left; }
   }
 
-  /* 爱好 */
-  .hobbies {
-    border-top: 0.5px solid var(--line);
-    padding-top: 3rem;
-  }
-  .hobby-kicker {
-    margin-bottom: 2rem;
+  .art figcaption {
+    margin-top: 0.8rem;
     font-size: 11px;
-    letter-spacing: 0.35em;
-    color: var(--ink-soft);
+    line-height: 1.6;
+    letter-spacing: 0.04em;
+    color: #777;
   }
-  .hobby {
-    margin-bottom: 2rem;
-    display: flex;
-    gap: 2rem;
-    align-items: baseline;
-  }
-  .hobby:last-child { margin-bottom: 0; }
-  .hobby-name {
-    flex-shrink: 0;
-    width: 110px;
-    font-style: italic;
-    font-size: 20px;
-    color: var(--ink);
-  }
-  .hobby p {
-    font-size: 15px;
-    line-height: 1.8;
-    color: var(--ink);
-    margin: 0;
-  }
-
-  /* paintings 黄昏松柏背景 */
-  .page-paintings-bg {
-    background-color: #e8e2d5;
-    background-image: url('textures/paintings-sky.jpg');
-    background-size: cover;
-    background-position: center top;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-  }
-
-  /* flowers 海树背景 */
-  .page-flowers-bg {
-    background-color: #d8d4c5;
-    background-image: url('textures/flowers-sea.jpg');
-    background-size: cover;
-    background-position: center top;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-  }
-
-  .flowers-inner { max-width: 860px; }
-
-  .paintings-inner { max-width: 860px; }
 
   .year-block {
     margin-bottom: 6rem;
@@ -456,7 +311,6 @@
 
   /* 年份大标题,章节感 */
   .year-label {
-    font-style: italic;
     font-weight: 400;
     font-size: 72px;
     letter-spacing: 0.05em;
@@ -564,285 +418,289 @@
   }
   .lightbox.open img { transform: scale(1); }
 
-  @media (max-width: 640px) {
-    .brand { top: 1rem; left: 1rem; gap: 10px; }
-    .brand .avatar { width: 56px; height: 56px; }
-    .brand .name { font-size: 14px; }
-    .brand .sub { font-size: 9px; }
-    .hint { display: none; }
+
+  @media (max-width: 760px) {
+    .topbar nav { padding: 1.2rem 1.25rem; justify-content: center; }
+    .sheet {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 6rem 1.25rem 4rem;
+      row-gap: 2.5rem;
+    }
+    .sheet .label { text-align: left; }
+    .portrait { margin-top: 1.5rem; }
+    .more { padding: 6rem 1.25rem 4rem; }
     .page-inner { padding: 5rem 1.25rem 3rem; }
     .page-header h1 { font-size: 32px; }
-    .back { top: 1rem; left: 1rem; font-size: 13px; }
-    .hotspot .tag { font-size: 17px; letter-spacing: 0.2em; bottom: -30px; }
-    .h-flowers .tag { top: -28px; }
+    .back { top: 1rem; left: 1rem; }
     .year-label { font-size: 44px; padding-bottom: 1.5rem; margin-bottom: 2rem; }
     .float-grid { gap: 2.5rem; }
     .year-block { margin-bottom: 4rem; }
-    .page-paintings-bg,
-    .page-flowers-bg { background-attachment: scroll; }
     .painting.align-left, .painting.align-right { align-self: center; margin: 0; }
     .painting.align-left:hover, .painting.align-right:hover { transform: translateY(-3px); }
     .pair-row { flex-direction: column; gap: 2.5rem; align-items: center; }
     .pair-row .painting { max-width: 100%; flex: initial; width: 100%; }
     .float-grid.grid-two { grid-template-columns: 1fr; gap: 2rem; }
-    .tl-city { font-size: 22px; }
-    .hobby { flex-direction: column; gap: 0.4rem; }
-    .hobby-name { width: auto; }
-    .about-intro { font-size: 16px; margin-bottom: 3rem; }
   }
 </style>
 </head>
 <body>
 
-<!-- SVG 滤镜:水彩流动效果 -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <defs>
-    <filter id="roomFlow">
-      <feTurbulence type="fractalNoise" baseFrequency="0.012 0.018" numOctaves="2" seed="1">
-        <animate attributeName="baseFrequency" dur="10s" values="0.012 0.018; 0.018 0.012; 0.012 0.018" repeatCount="indefinite"/>
-      </feTurbulence>
-      <feDisplacementMap in="SourceGraphic" scale="8"/>
-    </filter>
-  </defs>
-</svg>
+<header class="topbar">
+  <nav>
+    <a data-view="home" class="active">Home</a>
+    <a data-view="more">More</a>
+  </nav>
+</header>
 
-<div class="brand">
-  <div class="avatar" role="img" aria-label="Yunhan Chen"></div>
-  <div class="text">
-    <span class="name">Yunhan (Carina) Chen's room</span>
-  </div>
-</div>
-
-<div class="stage">
-  <div class="sea" aria-hidden="true">
-    <svg class="wave-1" viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-      <path d="M0,60 C150,100 300,20 600,60 C900,100 1050,20 1200,60 L1200,120 L0,120 Z" fill="#8fa9bc"/>
-    </svg>
-    <svg class="wave-2" viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-      <path d="M0,70 C200,30 400,110 600,70 C800,30 1000,110 1200,70 L1200,120 L0,120 Z" fill="#6b89a0"/>
-    </svg>
-    <svg class="wave-3" viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-      <path d="M0,80 C180,50 350,105 600,80 C850,55 1020,105 1200,80 L1200,120 L0,120 Z" fill="#4a6b84"/>
-    </svg>
-  </div>
-  <div class="room" role="img" aria-label="watercolor painting of a quiet room">
-    <a class="hotspot h-photos"    data-page="photos"><span class="glow"></span><span class="tag">random things</span></a>
-    <a class="hotspot h-about"     data-page="about"><span class="glow"></span><span class="tag">about me</span></a>
-    <a class="hotspot h-paintings" data-page="paintings"><span class="glow"></span><span class="tag">paintings</span></a>
-    <a class="hotspot h-flowers"   data-page="flowers"><span class="glow"></span><span class="tag">flowers</span></a>
-  </div>
-</div>
-
-<div class="hint">click the objects to enter</div>
-
-<div class="page page-about-bg" id="page-about">
-  <button class="back">back to the room</button>
-  <div class="page-inner about-inner">
-    <div class="page-header">
-      <div class="kicker">ABOUT ME</div>
-      <h1>hi, i'm Carina</h1>
+<main class="view active" id="view-home">
+  <div class="sheet">
+    <div class="left">
+      <div class="label">About</div>
+      <figure class="portrait">
+        <img src="avatar.jpg" alt="Yunhan (Carina) Chen">
+        <figcaption>
+          Yunhan (Carina) Chen<br>
+          b. 2004
+        </figcaption>
+      </figure>
     </div>
 
-    <!-- 时间轴 -->
-    <div class="timeline">
+    <div class="statement">
+      <p>I'm Carina. I study computer science in the joint bachelor's program between City University of Hong Kong and Columbia University.</p>
 
-      <div class="tl-stop">
-        <div class="tl-year">2004 — 2022</div>
-        <div class="tl-city">Chengdu, Sichuan</div>
-        <div class="tl-note">growing up, eighteen years of spice.</div>
-        <div class="tl-food">
-          <span class="food-kicker">what I often ate</span>
-          hot pot · suan la fen · shui zhu beef · zhong dumplings
-        </div>
-      </div>
+      <ul class="timeline-list">
+        <li><span>2004–2022</span>Chengdu</li>
+        <li><span>2022–2024</span>City University of Hong Kong</li>
+        <li><span>2024–2027</span>Columbia University</li>
+      </ul>
 
-      <div class="tl-stop">
-        <div class="tl-year">2022 — 2024</div>
-        <div class="tl-city">Hong Kong</div>
-        <div class="tl-note">computational finance at CityU (Dual BA).</div>
-        <div class="tl-food">
-          <span class="food-kicker">what I often ate</span>
-          har gow · cheung fun · char siu · roast goose<br>
-          <span class="food-side">(always at Chung Suk Bing Sutt in Wan Chai)</span>
-        </div>
-      </div>
-
-      <div class="tl-stop">
-        <div class="tl-year">2024 — now</div>
-        <div class="tl-city">New York</div>
-        <div class="tl-note">computer science at Columbia, graduating 2027.</div>
-        <div class="tl-food">
-          <span class="food-kicker">what I often eat</span>
-          still searching for the good stuff... <br>
-          <span class="food-side">(maybe falling for Thai food?)</span>
-        </div>
-      </div>
-
+      <h4 class="statement-label">Hobbies</h4>
+      <ul class="hobbies">
+        <li>Painting</li>
+        <li>Fortune-telling <span>astrology, tarot, the I Ching</span></li>
+        <li>Climbing</li>
+        <li>Swing dance <span>just a little</span></li>
+      </ul>
     </div>
-
-    <!-- 爱好 -->
-    <div class="hobbies">
-      <div class="kicker hobby-kicker">WHAT I DO WHEN I'M BORED</div>
-
-      <div class="hobby">
-        <div class="hobby-name">painting</div>
-        <p>a way of talking to myself. I love watercolor — it feels like the flow of memory.</p>
-      </div>
-
-      <div class="hobby">
-        <div class="hobby-name">climbing</div>
-        <p>where I face my fear, directly.</p>
-      </div>
-
-      <div class="hobby">
-        <div class="hobby-name">mysticism</div>
-        <p>reading about astrology, tarot, I Ching</p>
-      </div>
-
-      <div class="hobby">
-        <div class="hobby-name">sleeping</div>
-        <p>and, of course, sleeping zZZ.</p>
-      </div>
-    </div>
-
   </div>
-</div>
+</main>
+
+<main class="view" id="view-more">
+  <div class="more">
+    <a data-page="paintings">Paintings</a>
+    <a data-page="flowers">Flowers</a>
+    <a data-page="food">Food</a>
+  </div>
+</main>
 
 <div class="page page-paintings-bg" id="page-paintings">
-  <button class="back">back to the room</button>
+  <button class="back">back</button>
   <div class="page-inner paintings-inner">
     <div class="page-header">
-      <div class="kicker">Always, always...</div>
       <h1>PAINTINGS</h1>
     </div>
 
-    <section class="year-block">
-      <div class="year-label">2026</div>
-      <div class="float-grid">
-        <div class="painting wide align-center" data-full="paintings/16-nyc-cherry.jpg">
-          <img src="paintings/16-nyc-cherry.jpg" alt="">
-        </div>
-        <div class="painting align-center" data-full="paintings/15-buddha.jpg">
-          <img src="paintings/15-buddha.jpg" alt="">
-        </div>
+    <!-- 单独展出的一张:左边画,右边展签 -->
+    <section class="feature">
+      <figure class="art" data-full="paintings/2026.04.09-nyc-cherry.jpg">
+        <div class="mat"><img src="paintings/2026.04.09-nyc-cherry.jpg" width="1200" height="918" alt="NYC Cherry" loading="lazy"></div>
+      </figure>
+      <div class="wall-label">
+        <h3>NYC Cherry</h3>
+        <p class="meta">2026.04.09</p>
+        <p>Cherry blossoms in Central Park. Every time I came back to see them, they were a different color.</p>
       </div>
     </section>
 
-    <section class="year-block">
-      <div class="year-label">2025</div>
-      <div class="float-grid">
-        <div class="painting wide align-center" data-full="paintings/06-workshop.jpg">
-          <img src="paintings/06-workshop.jpg" alt="">
-        </div>
-        <div class="pair-row">
-          <div class="painting" data-full="paintings/07-nara-girl.jpg">
-            <img src="paintings/07-nara-girl.jpg" alt="">
-          </div>
-          <div class="painting" data-full="paintings/08-new-year.jpg">
-            <img src="paintings/08-new-year.jpg" alt="">
-          </div>
-        </div>
+    <!-- 单独展出的一张:左边展签,右边画 -->
+    <section class="feature feature-reverse feature-portrait">
+      <figure class="art" data-full="paintings/2026.03.21-buddha.jpg">
+        <div class="mat"><img src="paintings/2026.03.21-buddha.jpg" width="1148" height="1200" alt="Luohan from Yixian" loading="lazy"></div>
+      </figure>
+      <div class="wall-label">
+        <h3>Luohan from Yixian <span class="sub">renowned for its rare “naturalism” in the history of Chinese art</span></h3>
+        <p class="meta">2026.03.21</p>
+        <p>I still remember wandering through the Chinese art galleries at the Metropolitan Museum of Art: the sacred statues around me did not resemble mortals. Instead, each was compassionate and exquisite, neither male nor female, transcending the worldly and entering the sacred. Only the face of the Luohan felt familiar to us…</p>
       </div>
     </section>
 
-    <section class="year-block">
-      <div class="year-label">2024</div>
-      <div class="float-grid grid-two">
-        <div class="painting" data-full="paintings/01-totoro.jpg">
-          <img src="paintings/01-totoro.jpg" alt="">
-        </div>
-        <div class="painting" data-full="paintings/02-spirited-pig.jpg">
-          <img src="paintings/02-spirited-pig.jpg" alt="">
-        </div>
-        <div class="painting" data-full="paintings/03-yubaba.jpg">
-          <img src="paintings/03-yubaba.jpg" alt="">
-        </div>
-        <div class="painting" data-full="paintings/04-howl.jpg">
-          <img src="paintings/04-howl.jpg" alt="">
-        </div>
-        <div class="painting" data-full="paintings/05-ponyo.jpg">
-          <img src="paintings/05-ponyo.jpg" alt="">
-        </div>
-        <div class="painting" data-full="paintings/09-yellow-poppy.jpg">
-          <img src="paintings/09-yellow-poppy.jpg" alt="">
-        </div>
-        <div class="painting" data-full="paintings/10-blue-tulip.jpg">
-          <img src="paintings/10-blue-tulip.jpg" alt="">
-        </div>
-        <div class="painting" data-full="paintings/11-pink-hellebore.jpg">
-          <img src="paintings/11-pink-hellebore.jpg" alt="">
-        </div>
-        <div class="painting" data-full="paintings/12-pink-magnolia.jpg">
-          <img src="paintings/12-pink-magnolia.jpg" alt="">
-        </div>
-        <div class="painting" data-full="paintings/13-pink-lily.jpg">
-          <img src="paintings/13-pink-lily.jpg" alt="">
-        </div>
-        <div class="painting" data-full="paintings/14-pink-poppy.jpg">
-          <img src="paintings/14-pink-poppy.jpg" alt="">
-        </div>
+    <!-- 单独展出的一张:左边画,右边展签 -->
+    <section class="feature feature-portrait">
+      <figure class="art" data-full="paintings/2025.06.07-nara-girl.jpg">
+        <div class="mat"><img src="paintings/2025.06.07-nara-girl.jpg" width="900" height="1200" alt="Nara Girl" loading="lazy"></div>
+      </figure>
+      <div class="wall-label">
+        <h3>Nara Girl</h3>
+        <p class="meta">2025.06.07<br>Watercolor on paper</p>
+        <p>Inspired by Yoshitomo Nara. I painted her on a rainy day, a girl slowly growing moss. It made me think of Chengdu, my hometown, where everything always feels a little damp.</p>
       </div>
     </section>
+
+    <!-- 单独展出的一张:左边展签,右边画 -->
+    <section class="feature feature-reverse">
+      <figure class="art" data-full="paintings/2025.01.05-Gift%20to%20my%20best%20friend.jpg">
+        <div class="mat"><img src="paintings/2025.01.05-Gift%20to%20my%20best%20friend.jpg" width="1200" height="746" alt="Gift to My Best Friend" loading="lazy"></div>
+      </figure>
+      <div class="wall-label">
+        <h3>Gift to My Best Friend</h3>
+        <p class="meta">2025.01.05<br>Watercolor on paper</p>
+        <p>This painting is a gift to my friend Gezi, who wrote a novel about Porco Rosso. In it, there is this line:</p>
+        <blockquote>“A pig has no country and no law. After Porco Rosso boarded the ferry to America and left Milan, he never saw Gina again for the rest of his life, nor did he ever return to his homeland.”</blockquote>
+      </div>
+    </section>
+
+    <div class="gallery">
+      <figure class="art" data-full="paintings/2024.12.27-new-year.jpg">
+        <div class="mat"><img src="paintings/2024.12.27-new-year.jpg" width="900" height="1200" alt="New Year" loading="lazy"></div>
+        <figcaption>New Year, 2024.12.27</figcaption>
+      </figure>
+      <figure class="art" data-full="paintings/2024.10.5-Ponyo.jpg">
+        <div class="mat"><img src="paintings/2024.10.5-Ponyo.jpg" width="1198" height="1200" alt="Ponyo" loading="lazy"></div>
+        <figcaption>Ponyo, 2024.10.05</figcaption>
+      </figure>
+      <figure class="art" data-full="paintings/2024.10.4-Howl.jpg">
+        <div class="mat"><img src="paintings/2024.10.4-Howl.jpg" width="1144" height="1200" alt="Howl" loading="lazy"></div>
+        <figcaption>Howl, 2024.10.04</figcaption>
+      </figure>
+      <figure class="art" data-full="paintings/2024.7.15-Yubaba.jpg">
+        <div class="mat"><img src="paintings/2024.7.15-Yubaba.jpg" width="1200" height="1180" alt="Yubaba" loading="lazy"></div>
+        <figcaption>Yubaba, 2024.07.15</figcaption>
+      </figure>
+      <figure class="art" data-full="paintings/2024.7.12-Spirited%20Away.jpg">
+        <div class="mat"><img src="paintings/2024.7.12-Spirited%20Away.jpg" width="1164" height="1200" alt="Spirited Away" loading="lazy"></div>
+        <figcaption>Spirited Away, 2024.07.12</figcaption>
+      </figure>
+      <figure class="art" data-full="paintings/2024.7.2-Totoro.jpg">
+        <div class="mat"><img src="paintings/2024.7.2-Totoro.jpg" width="1178" height="1200" alt="Totoro" loading="lazy"></div>
+        <figcaption>Totoro, 2024.07.02</figcaption>
+      </figure>
+      <figure class="art" data-full="paintings/2024.02.29-yellow-poppy.jpg">
+        <div class="mat"><img src="paintings/2024.02.29-yellow-poppy.jpg" width="900" height="1200" alt="Yellow Poppy" loading="lazy"></div>
+        <figcaption>Yellow Poppy, 2024.02.29</figcaption>
+      </figure>
+      <figure class="art" data-full="paintings/2024.2.27-pink-magnolia.jpg">
+        <div class="mat"><img src="paintings/2024.2.27-pink-magnolia.jpg" width="900" height="1200" alt="Pink Magnolia" loading="lazy"></div>
+        <figcaption>Pink Magnolia, 2024.02.27</figcaption>
+      </figure>
+      <figure class="art" data-full="paintings/2024.02.24-pink-hellebore.jpg">
+        <div class="mat"><img src="paintings/2024.02.24-pink-hellebore.jpg" width="900" height="1200" alt="Pink Hellebore" loading="lazy"></div>
+        <figcaption>Pink Hellebore, 2024.02.24</figcaption>
+      </figure>
+      <figure class="art" data-full="paintings/2024.02.14-pink-poppy.jpg">
+        <div class="mat"><img src="paintings/2024.02.14-pink-poppy.jpg" width="900" height="1200" alt="Pink Poppy" loading="lazy"></div>
+        <figcaption>Pink Poppy, 2024.02.14</figcaption>
+      </figure>
+      <figure class="art" data-full="paintings/2024.02.14-pink-lily.jpg">
+        <div class="mat"><img src="paintings/2024.02.14-pink-lily.jpg" width="900" height="1200" alt="Pink Lily" loading="lazy"></div>
+        <figcaption>Pink Lily, 2024.02.14</figcaption>
+      </figure>
+      <figure class="art" data-full="paintings/2024.02.14-blue-tulip.jpg">
+        <div class="mat"><img src="paintings/2024.02.14-blue-tulip.jpg" width="900" height="1200" alt="Blue Tulip" loading="lazy"></div>
+        <figcaption>Blue Tulip, 2024.02.14</figcaption>
+      </figure>
+    </div>
 
   </div>
 
-  <!-- 放大查看的 lightbox -->
-  <div class="lightbox" id="lightbox">
-    <img src="" alt="" id="lightbox-img">
-  </div>
 </div>
 
-<div class="page page-flowers-bg" id="page-flowers">
-  <button class="back">back to the room</button>
+<div class="page page-flowers" id="page-flowers">
+  <button class="back">back</button>
   <div class="page-inner flowers-inner">
     <div class="page-header">
-      <h1>whisper</h1>
+      <h1>FLOWERS</h1>
     </div>
 
-    <section class="year-block">
-      <div class="year-label">2026</div>
-      <div class="float-grid">
-        <div class="painting align-left" data-full="flowers/01-snapdragon.jpg">
-          <img src="flowers/01-snapdragon.jpg" alt="">
-        </div>
-        <div class="painting align-right" data-full="flowers/02-tulip.jpg">
-          <img src="flowers/02-tulip.jpg" alt="">
-        </div>
-        <div class="painting wide align-center" data-full="flowers/03-peony.jpg">
-          <img src="flowers/03-peony.jpg" alt="">
-        </div>
-        <div class="painting align-left" data-full="flowers/04-ranunculus.jpg">
-          <img src="flowers/04-ranunculus.jpg" alt="">
-        </div>
-      </div>
-    </section>
-
+    <div class="flower-grid">
+      <figure class="flower" data-full="flowers/01-snapdragon.jpg">
+        <img src="flowers/01-snapdragon.jpg" alt="Snapdragon" loading="lazy">
+      </figure>
+      <figure class="flower" data-full="flowers/02-tulip.jpg">
+        <img src="flowers/02-tulip.jpg" alt="Tulip" loading="lazy">
+      </figure>
+      <figure class="flower" data-full="flowers/03-peony.jpg">
+        <img src="flowers/03-peony.jpg" alt="Peony" loading="lazy">
+      </figure>
+      <figure class="flower" data-full="flowers/04-ranunculus.jpg">
+        <img src="flowers/04-ranunculus.jpg" alt="Ranunculus" loading="lazy">
+      </figure>
+      <figure class="flower" data-full="flowers/05-dahlia-purple.jpg">
+        <img src="flowers/05-dahlia-purple.jpg" alt="Purple Dahlia" loading="lazy">
+      </figure>
+      <figure class="flower" data-full="flowers/06-rose-bouquet.jpg">
+        <img src="flowers/06-rose-bouquet.jpg" alt="Rose Bouquet" loading="lazy">
+      </figure>
+      <figure class="flower" data-full="flowers/07-dahlia-orange.jpg">
+        <img src="flowers/07-dahlia-orange.jpg" alt="Orange Dahlia" loading="lazy">
+      </figure>
+      <figure class="flower" data-full="flowers/08-anemone.jpg">
+        <img src="flowers/08-anemone.jpg" alt="Anemone" loading="lazy">
+      </figure>
+      <figure class="flower" data-full="flowers/09-ranunculus-white.jpg">
+        <img src="flowers/09-ranunculus-white.jpg" alt="White Ranunculus" loading="lazy">
+      </figure>
+      <figure class="flower" data-full="flowers/10-workshop-bouquet.jpg">
+        <img src="flowers/10-workshop-bouquet.jpg" alt="Workshop Bouquet" loading="lazy">
+      </figure>
+      <figure class="flower" data-full="flowers/11-smoke-bush.jpg">
+        <img src="flowers/11-smoke-bush.jpg" alt="Smoke Bush" loading="lazy">
+      </figure>
+      <figure class="flower" data-full="flowers/12-gerbera.jpg">
+        <img src="flowers/12-gerbera.jpg" alt="Gerbera" loading="lazy">
+      </figure>
+      <figure class="flower" data-full="flowers/13-peony-red.jpg">
+        <img src="flowers/13-peony-red.jpg" alt="Red Peony" loading="lazy">
+      </figure>
+      <figure class="flower" data-full="flowers/14-hydrangea.jpg">
+        <img src="flowers/14-hydrangea.jpg" alt="Hydrangea" loading="lazy">
+      </figure>
+      <figure class="flower" data-full="flowers/15-roses.jpg">
+        <img src="flowers/15-roses.jpg" alt="Roses" loading="lazy">
+      </figure>
+    </div>
   </div>
 </div>
 
-<div class="page" id="page-photos">
-  <button class="back">back to the room</button>
+<div class="page page-food" id="page-food">
+  <button class="back">back</button>
   <div class="page-inner">
     <div class="page-header">
-      <div class="kicker">RANDOM THINGS</div>
-      <h1>random things</h1>
+      <h1>Food</h1>
     </div>
-    <div class="coming-soon">
-      <p>something is quietly growing here.</p>
-      <p class="soon-sub">come back later.</p>
-    </div>
+    <!-- 在这里加 food 的内容 -->
+    <p class="empty-note">coming soon.</p>
   </div>
+</div>
+
+<!-- 放大查看的 lightbox -->
+<div class="lightbox" id="lightbox">
+  <img src="" alt="" id="lightbox-img">
 </div>
 
 <script>
-  const hotspots = document.querySelectorAll('.hotspot');
+  const navLinks = document.querySelectorAll('.topbar a');
+  const views = document.querySelectorAll('.view');
   const pages = document.querySelectorAll('.page');
-  const backs = document.querySelectorAll('.back');
 
-  hotspots.forEach(h => {
-    h.addEventListener('click', e => {
-      e.preventDefault();
-      const page = document.getElementById('page-' + h.dataset.page);
+  function closePages() {
+    pages.forEach(p => p.classList.remove('open'));
+    document.body.style.overflow = '';
+  }
+
+  // 页眉切换 Home / More
+  navLinks.forEach(a => {
+    a.addEventListener('click', () => {
+      navLinks.forEach(l => l.classList.toggle('active', l === a));
+      views.forEach(v => v.classList.toggle('active', v.id === 'view-' + a.dataset.view));
+      closePages();
+      window.scrollTo(0, 0);
+    });
+  });
+
+  // More 页里打开画作 / 花
+  document.querySelectorAll('[data-page]').forEach(a => {
+    a.addEventListener('click', () => {
+      const page = document.getElementById('page-' + a.dataset.page);
       if (page) {
         page.classList.add('open');
         document.body.style.overflow = 'hidden';
@@ -850,54 +708,55 @@
     });
   });
 
-  backs.forEach(b => {
-    b.addEventListener('click', () => {
-      pages.forEach(p => p.classList.remove('open'));
-      document.body.style.overflow = '';
-    });
-  });
+  document.querySelectorAll('.back').forEach(b => b.addEventListener('click', closePages));
 
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-      const lb = document.getElementById('lightbox');
-      if (lb && lb.classList.contains('open')) {
-        lb.classList.remove('open');
-        return;
-      }
-      pages.forEach(p => p.classList.remove('open'));
-      document.body.style.overflow = '';
-    }
-  });
+  // paintings 瀑布流:按顺序把每张画放进当前最矮的一列,保持从左到右、从新到旧
+  const galleries = [...document.querySelectorAll('.gallery')].map(g => ({
+    el: g,
+    arts: [...g.querySelectorAll('.art')],
+  }));
+  let colCount = 0;
+  function layoutGallery() {
+    const n = window.innerWidth < 640 ? 1 : window.innerWidth < 1000 ? 2 : 3;
+    if (n === colCount) return;
+    colCount = n;
+    galleries.forEach(({ el, arts }) => {
+      const cols = Array.from({ length: n }, () => {
+        const c = document.createElement('div');
+        c.className = 'gallery-col';
+        return c;
+      });
+      const heights = new Array(n).fill(0);
+      arts.forEach(art => {
+        const img = art.querySelector('img');
+        const i = heights.indexOf(Math.min(...heights));
+        cols[i].appendChild(art);
+        heights[i] += img.getAttribute('height') / img.getAttribute('width') + 0.4;
+      });
+      el.replaceChildren(...cols);
+    });
+  }
+  layoutGallery();
+  window.addEventListener('resize', layoutGallery);
 
   // lightbox 画作放大
   const lightbox = document.getElementById('lightbox');
   const lightboxImg = document.getElementById('lightbox-img');
-  document.querySelectorAll('.painting').forEach(p => {
+  document.querySelectorAll('.art, .flower').forEach(p => {
     p.addEventListener('click', () => {
-      const full = p.dataset.full || p.querySelector('img').src;
-      lightboxImg.src = full;
+      lightboxImg.src = p.dataset.full || p.querySelector('img').src;
       lightbox.classList.add('open');
     });
   });
-  if (lightbox) {
-    lightbox.addEventListener('click', () => {
-      lightbox.classList.remove('open');
-    });
-  }
+  lightbox.addEventListener('click', () => lightbox.classList.remove('open'));
 
-  // 流沙效果:悬停热区时房间静止,移开2秒后恢复流动
-  const roomEl = document.querySelector('.room');
-  let stillTimer = null;
-  hotspots.forEach(h => {
-    h.addEventListener('mouseenter', () => {
-      if (stillTimer) clearTimeout(stillTimer);
-      roomEl.classList.add('still');
-    });
-    h.addEventListener('mouseleave', () => {
-      stillTimer = setTimeout(() => {
-        roomEl.classList.remove('still');
-      }, 2000);
-    });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (lightbox.classList.contains('open')) {
+      lightbox.classList.remove('open');
+      return;
+    }
+    closePages();
   });
 </script>
 </body>
