@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Yunhan Chen</title>
 <link rel="icon" href="avatar.jpg" type="image/jpeg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -23,30 +26,27 @@
     overflow-x: hidden;
   }
 
-  /* 页眉导航 */
+  /* 页眉导航:固定在右上角,所有页面都显示;层级高于 paintings 等页面,低于放大图和开屏 */
   .topbar {
     position: fixed;
     top: 0;
-    left: 0;
     right: 0;
-    background: rgba(255, 255, 255, 0.94);
-    z-index: 50;
+    z-index: 150;
   }
   .topbar nav {
-    max-width: 1120px;
-    margin: 0 auto;
-    padding: 1.6rem 3rem;
+    padding: 14px 24px;
     display: flex;
-    justify-content: flex-end;
-    gap: 4.5rem;
+    gap: 2rem;
+    background: rgba(255, 255, 255, 0.9);
   }
   .topbar a {
-    font-size: 13px;
-    letter-spacing: 0.12em;
-    color: #1a1a1a;
+    font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+    font-size: 12.5px;
+    letter-spacing: 0.02em;
+    color: #111;
     text-decoration: none;
-    padding-bottom: 3px;
-    border-bottom: 0.5px solid transparent;
+    padding-bottom: 2px;
+    border-bottom: 1px solid transparent;
     cursor: pointer;
   }
   .topbar a:hover,
@@ -55,27 +55,66 @@
   .view { display: none; }
   .view.active { display: block; }
 
-  /* More 背景画:固定在右下角,往左上淡开 */
-  #view-more::before {
-    content: '';
-    position: fixed;
-    z-index: -1;
-    right: 0;
-    bottom: 0;
-    width: min(95vw, 1300px);
-    height: min(95vh, 1000px);
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: right bottom;
-    opacity: 0.35;
-    -webkit-mask-image: radial-gradient(ellipse 100% 100% at 100% 100%, #000 25%, transparent 75%);
-            mask-image: radial-gradient(ellipse 100% 100% at 100% 100%, #000 25%, transparent 75%);
-    pointer-events: none;
+  /* More:moodboard,画和花混排,格子等宽,图片大小错落、底边对齐 */
+  .moodboard {
+    /* 每一行左右排满、间距完全相同:同一行的图等高,宽度按比例由 JS 算好(layoutMood) */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 64px 24px;
+    padding: 0 4px;
   }
-  /* 染一点暖米色 */
-  #view-more::before {
-    background-image: url('textures/more.jpg');
-    filter: sepia(0.35);
+  /* 两组各自的背景图:黑底上很淡的一层图,白字;背景固定不动,滑到哪组就换成哪张 */
+  .mood-section { padding: 64px 0 120px; }
+  body:has(#view-more.active) .topbar nav { background: transparent; }
+  .mood-paintings {
+    background:
+      linear-gradient(rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.82)),
+      url('textures/paintings.jpg') center / cover fixed;
+  }
+  .mood-flowers {
+    background:
+      linear-gradient(rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.82)),
+      url('textures/flowers-web.jpg') center / cover fixed;
+  }
+  .mood-section .mood-title,
+  .mood-section .mood-item figcaption { color: #fff; }
+  .mood-section .mood-item figcaption span { color: rgba(255, 255, 255, 0.5); }
+  body:has(#view-more.active) .topbar a { color: #fff; }
+  body:has(#view-more.active) .topbar a:hover,
+  body:has(#view-more.active) .topbar a.active { border-bottom-color: #fff; }
+  body:has(#view-more.active) { background: #000;
+  }
+  @media (max-width: 760px) {
+    .mood-paintings, .mood-flowers { background-attachment: scroll; }
+  }
+  .mood-title {
+    padding: 0 4px 40px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 500;
+    font-size: clamp(18px, 1.8vw, 26px);
+    letter-spacing: -0.02em;
+    color: #111;
+  }
+  .mood-item { cursor: zoom-in; }
+  .mood-thumb { display: flex; align-items: flex-end; }
+  .mood-thumb img {
+    width: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+  .mood-item:hover img { transform: translateY(-4px); }
+  .mood-item figcaption {
+    margin-top: 8px;
+    font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+    font-size: 11px;
+    line-height: 1.25;
+    color: #555;
+  }
+  .mood-item figcaption span { color: #aaa; }
+  @media (max-width: 640px) {
+    .moodboard { gap: 40px 12px; }
   }
 
   /* 主页:照模版的左右两栏 */
@@ -96,7 +135,7 @@
   }
 
   .portrait {
-    margin-top: 5.5rem;
+    margin-top: 0;
   }
   .portrait img {
     width: 100%;
@@ -109,6 +148,7 @@
     line-height: 1.7;
   }
 
+  .statement { margin-top: 5.5rem; }
   .statement p + p { margin-top: 1.4rem; }
   .statement-label {
     margin-top: 3rem;
@@ -143,6 +183,63 @@
     cursor: pointer;
   }
   .page.page-food { background: #fff; }
+  /* 论文页:黑底 + 当前论文的背景图(透明度 20%),白字;左边目录点哪篇,右边显示哪篇 */
+  .page.page-paper { background: #000; color: #fff; }
+  .paper-bg {
+    position: fixed;
+    inset: 0;
+    background: center / cover no-repeat;
+    opacity: 0.2;
+    pointer-events: none;
+    transition: background-image 0.4s ease;
+  }
+  .page-paper .back { color: #fff; }
+  .page-paper .back:hover { border-bottom-color: #fff; }
+  body:has(.page-paper.open) .topbar nav { background: transparent; }
+  body:has(.page-paper.open) .topbar a { color: #fff; }
+  body:has(.page-paper.open) .topbar a:hover,
+  body:has(.page-paper.open) .topbar a.active { border-bottom-color: #fff; }
+  .paper-page {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 460px);
+    column-gap: 64px;
+    padding: 72px 28px 80px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    line-height: 1.38;
+  }
+  .paper-page h2,
+  .paper-page h3 { font: inherit; }
+  .paper-page h3 { font-weight: 700; }
+  .paper-index h2 { padding-left: 3.4em; margin-bottom: 1.4em; }
+  .paper-index ol { list-style: none; }
+  .paper-index li {
+    display: grid;
+    grid-template-columns: 3.4em minmax(0, 1fr);
+    max-width: 30em;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+  }
+  .paper-index li + li { margin-top: 0.4em; }
+  .paper-index li:hover,
+  .paper-index li.current { opacity: 1; }
+  .paper-detail { display: none; }
+  .paper-detail.current { display: block; }
+  .paper-detail section + section { margin-top: 1.4em; }
+  .paper-detail p { text-align: justify; hyphens: auto; }
+  .paper-detail .muted { color: rgba(255, 255, 255, 0.6); text-align: left; }
+  .coauthors { list-style: none; }
+  .coauthors li + li { margin-top: 0.5em; }
+  .coauthors span { display: block; font-size: 12px; color: rgba(255, 255, 255, 0.6); }
+  .paper-detail .paper-venue { margin-top: 3em; }
+  .paper-detail .paper-link { font-weight: 700; }
+  .paper-detail a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+  .paper-detail a:hover { opacity: 0.6; }
+  @media (max-width: 760px) {
+    .paper-page { grid-template-columns: minmax(0, 1fr); row-gap: 3em; padding: 72px 16px 60px; }
+  }
   .empty-note { font-size: 14px; letter-spacing: 0.1em; color: #888; }
 
   .more a:hover { text-decoration: underline; text-underline-offset: 4px; }
@@ -180,7 +277,110 @@
     font-weight: 400;
     font-size: 42px;
     letter-spacing: 0.02em;
+  }
+  #view-publications .page-header h1,
+  #view-talks .page-header h1 {
+    font-size: 16px;
+    letter-spacing: 0.12em;
+    font-style: italic;
     color: var(--ink);
+  }
+  #view-talks .page-header h1 { font-size: 13px; }
+  /* Publications:仿唱片曲目单的两栏目录,大号粗体无衬线字,合作者用小一号的浅灰字 */
+  .tracklist {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 24px;
+    padding: 56px 8px 60px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    font-size: clamp(18px, 1.8vw, 26px);
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+    color: #111;
+  }
+  .tracklist h2 { font: inherit; font-weight: 700; margin-bottom: 0.6em; }
+  .tracklist ul { list-style: none; }
+  .tracklist li + li { margin-top: 0.3em; }
+  /* 论文标题:常驻细下划线,鼠标移上去变深,一看就知道能点 */
+  .tracklist a {
+    color: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+    text-decoration-color: rgba(0, 0, 0, 0.35);
+    transition: text-decoration-color 0.2s;
+  }
+  .tracklist a:hover { text-decoration-color: #111; }
+  .tracklist .with {
+    display: block;
+    margin-top: 0.2em;
+    font-size: 0.68em;
+    letter-spacing: -0.01em;
+    color: #aaa;
+  }
+  /* Publications 下方散落的方块 */
+  #view-publications { position: relative; min-height: 100vh; overflow: hidden; }
+  #view-publications .tracklist { position: relative; z-index: 1; }
+  .pub-scatter { position: absolute; inset: 0; }
+  .pub-square {
+    position: absolute;
+    width: clamp(80px, 9.6vw, 190px);
+    aspect-ratio: 1;
+    object-fit: cover;
+    cursor: zoom-in;
+    transition: transform 0.4s ease;
+  }
+  .pub-square:hover { transform: scale(1.06); }
+  @media (max-width: 760px) {
+    .tracklist { grid-template-columns: minmax(0, 1fr); row-gap: 1.6em; padding-top: 52px; }
+    .pub-square { width: 12vw; }
+  }
+  /* Talks:仿目录表格,三栏 论文 / 场合 / 时间,不画横线 */
+  .talks-table {
+    padding: 56px 8px 60px;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #111;
+  }
+  .talk-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 0.5fr);
+    column-gap: 24px;
+    padding: 0.35em 0;
+    font-size: clamp(14px, 1.15vw, 16px);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.015em;
+  }
+  /* Talks 背景:黑底上很淡的图书馆照片,白字;背景固定 */
+  #view-talks {
+    min-height: 100vh;
+    background:
+      linear-gradient(rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.82)),
+      url('textures/lib-web.jpg') center / cover fixed;
+  }
+  #view-talks .talks-table { color: #fff; }
+  #view-talks .talk-row.talk-head { border-bottom-color: #fff; }
+  body:has(#view-talks.active) { background: #000; }
+  body:has(#view-talks.active) .topbar nav { background: transparent; }
+  body:has(#view-talks.active) .topbar a { color: #fff; }
+  body:has(#view-talks.active) .topbar a:hover,
+  body:has(#view-talks.active) .topbar a.active { border-bottom-color: #fff; }
+  @media (max-width: 760px) {
+    #view-talks { background-attachment: scroll; }
+  }
+  .talk-row.talk-head {
+    margin-bottom: 0.6em;
+    padding-bottom: 0.6em;
+    border-bottom: 1px solid #111;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+  @media (max-width: 760px) {
+    .talks-table { padding-top: 52px; }
+    .talk-row { grid-template-columns: minmax(0, 1fr); row-gap: 0.2em; padding: 0.7em 0; }
+    .talk-row.talk-head { display: none; }
   }
 
   .back {
@@ -391,6 +591,63 @@
   }
 
   /* lightbox 放大查看 */
+  .note-view {
+    position: fixed;
+    inset: 0;
+    z-index: 190;
+    background: #fff;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+  }
+  .note-view.open { opacity: 1; visibility: visible; }
+  /* 书页:两页并排,中间书脊阴影 */
+  .note-view.open { background: #d9d8d4; }
+  .book {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    height: 100vh;
+    padding: 10px;
+  }
+  .book-page {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: #f6f5f2;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  .book-left { box-shadow: inset -24px 0 30px -24px rgba(0, 0, 0, 0.45); }
+  .book-right { box-shadow: inset 24px 0 30px -24px rgba(0, 0, 0, 0.45); }
+  .book-plate {
+    flex: 1;
+    min-height: 0;
+    padding: 56px 40px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .book-plate img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; box-shadow: 0 2px 10px -4px rgba(0, 0, 0, 0.25); }
+  .book-right .wall-label {
+    flex: 1;
+    max-width: 380px;
+    padding: 72px 0 0 48px;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .book-foot {
+    padding: 0 26px 22px;
+    font-size: 15px;
+    line-height: 1.3;
+    color: #222;
+  }
+  .book-sub { color: #999; }
+  @media (max-width: 760px) {
+    .book { grid-template-columns: minmax(0, 1fr); height: auto; }
+    .book-plate { height: 70vh; flex: none; }
+    .book-right .wall-label { padding: 32px 24px 40px; }
+    .book-left, .book-right { box-shadow: none; }
+  }
   .lightbox {
     position: fixed;
     inset: 0;
@@ -420,14 +677,15 @@
 
 
   @media (max-width: 760px) {
-    .topbar nav { padding: 1.2rem 1.25rem; justify-content: center; }
+    .topbar nav { padding: 12px 16px; gap: 1.2rem; }
     .sheet {
       grid-template-columns: minmax(0, 1fr);
       padding: 6rem 1.25rem 4rem;
       row-gap: 2.5rem;
     }
     .sheet .label { text-align: left; }
-    .portrait { margin-top: 1.5rem; }
+    .portrait { margin-top: 0; }
+    .statement { margin-top: 0; }
     .more { padding: 6rem 1.25rem 4rem; }
     .page-inner { padding: 5rem 1.25rem 3rem; }
     .page-header h1 { font-size: 32px; }
@@ -441,55 +699,364 @@
     .pair-row .painting { max-width: 100%; flex: initial; width: 100%; }
     .float-grid.grid-two { grid-template-columns: 1fr; gap: 2rem; }
   }
+  /* 开屏:全屏图片(透明度 40%,黑底,让白字看得清),中间写名字,点一下淡出进入主页 */
+  .splash {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+  }
+  .splash::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('textures/IMG_7456.jpg') center / cover no-repeat;
+    opacity: 0.4;
+  }
+  .splash h1 {
+    position: relative;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 400;
+    font-size: 20px;
+    letter-spacing: 0.01em;
+    color: #fff;
+  }
+  .splash.gone { opacity: 0; visibility: hidden; }
+  /* 主页:仿 Cargo 模版,细框 + 等宽字信息栏 + 居中大标题 + 左图右文 */
+  .studio {
+    max-width: 860px;
+    min-height: calc(100vh - 68px);
+    margin: 48px auto 20px;
+    padding: 30px 28px 52px;
+    border: 1px solid #c8c8c8;
+    color: #111;
+  }
+  .studio a { color: inherit; text-decoration: none; cursor: pointer; }
+  .studio a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .studio-bar {
+    font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+    font-size: 12.5px;
+    letter-spacing: 0.02em;
+  }
+  .studio-bar .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1em;
+    padding: 6px 0;
+    border-top: 1px solid #9a9a9a;
+  }
+  .studio-bar .row:last-child { border-bottom: 1px solid #9a9a9a; }
+  .studio-title {
+    margin: 34px 0;
+    text-align: center;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 500;
+    font-size: 44px;
+    letter-spacing: -0.02em;
+  }
+  .studio-body {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 28px;
+    padding-top: 28px;
+    border-top: 1px solid #c8c8c8;
+  }
+  /* 图片高度跟着屏幕走,保证整页一屏放下 */
+  .studio-body img { width: 100%; max-height: calc(100vh - 380px); object-fit: cover; display: block; }
+  /* 署名挂在图片下方,不占高度,这样这一行的高度 = 图片高度 */
+  .studio-body figure { position: relative; }
+  .studio-body figcaption {
+    position: absolute;
+    top: 100%;
+    margin-top: 10px;
+    font-family: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+    font-size: 12.5px;
+    color: #555;
+  }
+  /* 右栏三段:介绍 / 时间线 / 技能和爱好,上下撑开,第一行对齐图片顶边,最后一行对齐图片底边 */
+  .studio-text {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 15px;
+    line-height: 1.4;
+    margin: -0.3em 0 -0.3em;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 1.6em;
+  }
+  .studio-text .lead { text-align: justify; hyphens: auto; }
+  .studio-text .timeline-list { margin-top: 0; }
+  .studio-text .timeline-list span { width: 7.5em; color: #777; }
+  .studio-text .statement-label { margin-top: 0; font-size: 15px; font-weight: 700; }
+  .studio-text .hobbies { margin-top: 0.2em; }
+  .studio-text .facts p + p { margin-top: 0.5em; }
+  .studio a.text-link { color: inherit; cursor: pointer; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.18em; text-decoration-color: #111; }
+  .studio a.text-link:hover { opacity: 0.6; }
+  .studio-text .hobbies span { color: #777; }
+
+  @media (max-width: 760px) {
+    .studio { margin: 0; min-height: 100vh; border: none; padding: 52px 16px 60px; }
+    .studio-bar .row { flex-wrap: wrap; }
+    .studio-title { font-size: 36px; margin: 60px 0; }
+    .studio-body { grid-template-columns: minmax(0, 1fr); row-gap: 52px; }
+    .studio-text { justify-content: flex-start; }
+  }
 </style>
 </head>
 <body>
 
+<div class="splash" id="splash">
+  <h1>Yùnhán Chén</h1>
+</div>
+
 <header class="topbar">
   <nav>
     <a data-view="home" class="active">Home</a>
+    <a data-view="publications">Publications</a>
+    <a data-view="talks">Talks</a>
     <a data-view="more">More</a>
   </nav>
 </header>
 
 <main class="view active" id="view-home">
-  <div class="sheet">
-    <div class="left">
-      <div class="label">About</div>
-      <figure class="portrait">
-        <img src="avatar.jpg" alt="Yunhan (Carina) Chen">
-        <figcaption>
-          Yunhan (Carina) Chen<br>
-          b. 2004
-        </figcaption>
-      </figure>
+  <div class="studio">
+    <div class="studio-bar">
+      <div class="row">
+        <span>Current Location: New York</span>
+      </div>
+      <div class="row">
+        <a href="mailto:yc4512@columbia.edu" style="margin-left: auto">Email: yc4512@columbia.edu</a>
+      </div>
     </div>
 
-    <div class="statement">
-      <p>I'm Carina. I study computer science in the joint bachelor's program between City University of Hong Kong and Columbia University.</p>
+    <h1 class="studio-title">Carina Yunhan Chen</h1>
 
-      <ul class="timeline-list">
-        <li><span>2004–2022</span>Chengdu</li>
-        <li><span>2022–2024</span>City University of Hong Kong</li>
-        <li><span>2024–2027</span>Columbia University</li>
-      </ul>
+    <div class="studio-body">
+      <figure>
+        <img src="avatar.jpg" alt="Yunhan (Carina) Chen">
+        <figcaption>b. 2004</figcaption>
+      </figure>
 
-      <h4 class="statement-label">Hobbies</h4>
-      <ul class="hobbies">
-        <li>Painting</li>
-        <li>Fortune-telling <span>astrology, tarot, the I Ching</span></li>
-        <li>Climbing</li>
-        <li>Swing dance <span>just a little</span></li>
-      </ul>
+      <div class="studio-text">
+        <p class="lead">Carina is a senior studying computer science in the joint bachelor's program between City University of Hong Kong and Columbia University, graduating in 2027. Her current research sits at the intersection of operations management and AI, and she is open to all topics in operations research. Previously, she also worked on research in parallel computing and GPUs.</p>
+
+        <ul class="timeline-list">
+          <li><span>2004–2022</span>Chengdu, Sichuan, China</li>
+          <li><span>2022–2024</span>City University of Hong Kong</li>
+          <li><span>2024–2027</span>Columbia University</li>
+        </ul>
+
+        <div class="facts">
+          <p><b>Computing Skills:</b> Python, C++, Java, Mathematica, Linux, CUDA, Pthreads, SQL, HTML, CSS, JavaScript, CMake</p>
+          <p><b>Hobbies:</b> <a class="text-link" data-view="more" data-scroll="more-paintings">Painting</a>, Fortune-telling, Climbing, Swing dance</p>
+        </div>
+      </div>
     </div>
   </div>
 </main>
 
 <main class="view" id="view-more">
-  <div class="more">
-    <a data-page="paintings">Paintings</a>
-    <a data-page="flowers">Flowers</a>
-    <a data-page="food">Food</a>
+  <!-- moodboard:上面一组是画,下面一组是花,每组有自己的背景;每格图片大小不同,底边对齐 -->
+  <section class="mood-section mood-paintings" id="more-paintings">
+  <h2 class="mood-title">Paintings</h2>
+  <div class="moodboard">
+    <figure class="mood-item has-note" data-full="paintings/2026.11.04-guangzhou-dim-sum.jpg" style="--r: 1.000; --s: 1">
+      <div class="mood-thumb"><img src="paintings/2026.11.04-guangzhou-dim-sum.jpg" width="1080" height="1080" alt="Morning Tea in Guangzhou" loading="lazy"></div>
+      <figcaption>2026.11.04<br>Morning Tea in Guangzhou<br><span>Digital Painting</span></figcaption>
+    </figure>
+    <figure class="mood-item has-note" data-full="paintings/2026.04.09-nyc-cherry.jpg" style="--r: 1.307; --s: 0.62">
+      <div class="mood-thumb"><img src="paintings/2026.04.09-nyc-cherry.jpg" width="1200" height="918" alt="NYC Cherry" loading="lazy"></div>
+      <figcaption>2026.04.09<br>NYC Cherry<br><span>Digital Painting</span></figcaption>
+    </figure>
+    <figure class="mood-item has-note" data-full="paintings/2026.03.21-buddha.jpg" style="--r: 0.957; --s: 0.86">
+      <div class="mood-thumb"><img src="paintings/2026.03.21-buddha.jpg" width="1148" height="1200" alt="Luohan from Yixian" loading="lazy"></div>
+      <figcaption>2026.03.21<br>Luohan from Yixian<br><span>Digital Painting</span></figcaption>
+    </figure>
+    <figure class="mood-item has-note" data-full="paintings/2025.06.07-nara-girl.jpg" style="--r: 0.750; --s: 0.52">
+      <div class="mood-thumb"><img src="paintings/2025.06.07-nara-girl.jpg" width="900" height="1200" alt="Nara Girl" loading="lazy"></div>
+      <figcaption>2025.06.07<br>Nara Girl<br><span>Watercolor</span></figcaption>
+    </figure>
+    <figure class="mood-item has-note" data-full="paintings/2025.01.05-Gift%20to%20my%20best%20friend.jpg" style="--r: 1.609; --s: 0.78">
+      <div class="mood-thumb"><img src="paintings/2025.01.05-Gift%20to%20my%20best%20friend.jpg" width="1200" height="746" alt="Gift to My Best Friend" loading="lazy"></div>
+      <figcaption>2025.01.05<br>Gift to My Best Friend<br><span>Watercolor</span></figcaption>
+    </figure>
+    <figure class="mood-item" data-full="paintings/2024.12.27-new-year.jpg" style="--r: 0.750; --s: 1">
+      <div class="mood-thumb"><img src="paintings/2024.12.27-new-year.jpg" width="900" height="1200" alt="New Year" loading="lazy"></div>
+      <figcaption>2024.12.27<br>New Year<br><span>Watercolor</span></figcaption>
+    </figure>
+    <figure class="mood-item" data-full="paintings/2024.10.5-Ponyo.jpg" style="--r: 0.998; --s: 0.58">
+      <div class="mood-thumb"><img src="paintings/2024.10.5-Ponyo.jpg" width="1198" height="1200" alt="Ponyo" loading="lazy"></div>
+      <figcaption>2024.10.05<br>Ponyo<br><span>Watercolor</span></figcaption>
+    </figure>
+    <figure class="mood-item" data-full="paintings/2024.10.4-Howl.jpg" style="--r: 0.953; --s: 0.92">
+      <div class="mood-thumb"><img src="paintings/2024.10.4-Howl.jpg" width="1144" height="1200" alt="Howl" loading="lazy"></div>
+      <figcaption>2024.10.04<br>Howl<br><span>Watercolor</span></figcaption>
+    </figure>
+    <figure class="mood-item" data-full="paintings/2024.7.15-Yubaba.jpg" style="--r: 1.017; --s: 0.7">
+      <div class="mood-thumb"><img src="paintings/2024.7.15-Yubaba.jpg" width="1200" height="1180" alt="Yubaba" loading="lazy"></div>
+      <figcaption>2024.07.15<br>Yubaba<br><span>Watercolor</span></figcaption>
+    </figure>
+    <figure class="mood-item" data-full="paintings/2024.7.12-Spirited%20Away.jpg" style="--r: 0.970; --s: 0.5">
+      <div class="mood-thumb"><img src="paintings/2024.7.12-Spirited%20Away.jpg" width="1164" height="1200" alt="Spirited Away" loading="lazy"></div>
+      <figcaption>2024.07.12<br>Spirited Away<br><span>Watercolor</span></figcaption>
+    </figure>
+    <figure class="mood-item" data-full="paintings/2024.7.2-Totoro.jpg" style="--r: 0.982; --s: 0.84">
+      <div class="mood-thumb"><img src="paintings/2024.7.2-Totoro.jpg" width="1178" height="1200" alt="Totoro" loading="lazy"></div>
+      <figcaption>2024.07.02<br>Totoro<br><span>Watercolor</span></figcaption>
+    </figure>
+    <figure class="mood-item" data-full="paintings/2024.02.29-yellow-poppy.jpg" style="--r: 0.750; --s: 0.64">
+      <div class="mood-thumb"><img src="paintings/2024.02.29-yellow-poppy.jpg" width="900" height="1200" alt="Yellow Poppy" loading="lazy"></div>
+      <figcaption>2024.02.29<br>Yellow Poppy<br><span>Watercolor</span></figcaption>
+    </figure>
+    <figure class="mood-item" data-full="paintings/2024.2.27-pink-magnolia.jpg" style="--r: 0.750; --s: 1">
+      <div class="mood-thumb"><img src="paintings/2024.2.27-pink-magnolia.jpg" width="900" height="1200" alt="Pink Magnolia" loading="lazy"></div>
+      <figcaption>2024.02.27<br>Pink Magnolia<br><span>Watercolor</span></figcaption>
+    </figure>
+    <figure class="mood-item" data-full="paintings/2024.02.24-pink-hellebore.jpg" style="--r: 0.750; --s: 0.62">
+      <div class="mood-thumb"><img src="paintings/2024.02.24-pink-hellebore.jpg" width="900" height="1200" alt="Pink Hellebore" loading="lazy"></div>
+      <figcaption>2024.02.24<br>Pink Hellebore<br><span>Watercolor</span></figcaption>
+    </figure>
+    <figure class="mood-item" data-full="paintings/2024.02.14-pink-poppy.jpg" style="--r: 0.750; --s: 0.86">
+      <div class="mood-thumb"><img src="paintings/2024.02.14-pink-poppy.jpg" width="900" height="1200" alt="Pink Poppy" loading="lazy"></div>
+      <figcaption>2024.02.14<br>Pink Poppy<br><span>Watercolor</span></figcaption>
+    </figure>
+    <figure class="mood-item" data-full="paintings/2024.02.14-pink-lily.jpg" style="--r: 0.750; --s: 0.52">
+      <div class="mood-thumb"><img src="paintings/2024.02.14-pink-lily.jpg" width="900" height="1200" alt="Pink Lily" loading="lazy"></div>
+      <figcaption>2024.02.14<br>Pink Lily<br><span>Watercolor</span></figcaption>
+    </figure>
+    <figure class="mood-item" data-full="paintings/2024.02.14-blue-tulip.jpg" style="--r: 0.750; --s: 0.78">
+      <div class="mood-thumb"><img src="paintings/2024.02.14-blue-tulip.jpg" width="900" height="1200" alt="Blue Tulip" loading="lazy"></div>
+      <figcaption>2024.02.14<br>Blue Tulip<br><span>Watercolor</span></figcaption>
+    </figure>
+  </div>
+  </section>
+  <section class="mood-section mood-flowers">
+  <h2 class="mood-title">Flowers</h2>
+  <div class="moodboard">
+    <figure class="mood-item" data-full="flowers/01-snapdragon.jpg" style="--r: 0.750; --s: 1">
+      <div class="mood-thumb"><img src="flowers/01-snapdragon.jpg" width="900" height="1200" alt="Snapdragon" loading="lazy"></div>
+      <figcaption>Snapdragon</figcaption>
+    </figure>
+    <figure class="mood-item" data-full="flowers/02-tulip.jpg" style="--r: 0.750; --s: 0.62">
+      <div class="mood-thumb"><img src="flowers/02-tulip.jpg" width="900" height="1200" alt="Tulip" loading="lazy"></div>
+      <figcaption>Tulip</figcaption>
+    </figure>
+    <figure class="mood-item" data-full="flowers/03-peony.jpg" style="--r: 1.333; --s: 0.86">
+      <div class="mood-thumb"><img src="flowers/03-peony.jpg" width="1200" height="900" alt="Peony" loading="lazy"></div>
+      <figcaption>Peony</figcaption>
+    </figure>
+    <figure class="mood-item" data-full="flowers/04-ranunculus.jpg" style="--r: 1.056; --s: 0.52">
+      <div class="mood-thumb"><img src="flowers/04-ranunculus.jpg" width="1200" height="1136" alt="Ranunculus" loading="lazy"></div>
+      <figcaption>Ranunculus</figcaption>
+    </figure>
+    <figure class="mood-item" data-full="flowers/05-dahlia-purple.jpg" style="--r: 1.334; --s: 0.78">
+      <div class="mood-thumb"><img src="flowers/05-dahlia-purple.jpg" width="1706" height="1279" alt="Purple Dahlia" loading="lazy"></div>
+      <figcaption>Purple Dahlia</figcaption>
+    </figure>
+    <figure class="mood-item" data-full="flowers/06-rose-bouquet.jpg" style="--r: 0.750; --s: 1">
+      <div class="mood-thumb"><img src="flowers/06-rose-bouquet.jpg" width="1279" height="1706" alt="Rose Bouquet" loading="lazy"></div>
+      <figcaption>Rose Bouquet</figcaption>
+    </figure>
+    <figure class="mood-item" data-full="flowers/07-dahlia-orange.jpg" style="--r: 1.333; --s: 0.58">
+      <div class="mood-thumb"><img src="flowers/07-dahlia-orange.jpg" width="1280" height="960" alt="Orange Dahlia" loading="lazy"></div>
+      <figcaption>Orange Dahlia</figcaption>
+    </figure>
+    <figure class="mood-item" data-full="flowers/08-anemone.jpg" style="--r: 1.334; --s: 0.92">
+      <div class="mood-thumb"><img src="flowers/08-anemone.jpg" width="1706" height="1279" alt="Anemone" loading="lazy"></div>
+      <figcaption>Anemone</figcaption>
+    </figure>
+    <figure class="mood-item" data-full="flowers/09-ranunculus-white.jpg" style="--r: 0.749; --s: 0.7">
+      <div class="mood-thumb"><img src="flowers/09-ranunculus-white.jpg" width="960" height="1282" alt="White Ranunculus" loading="lazy"></div>
+      <figcaption>White Ranunculus</figcaption>
+    </figure>
+    <figure class="mood-item" data-full="flowers/10-workshop-bouquet.jpg" style="--r: 0.750; --s: 0.5">
+      <div class="mood-thumb"><img src="flowers/10-workshop-bouquet.jpg" width="1279" height="1706" alt="Workshop Bouquet" loading="lazy"></div>
+      <figcaption>Workshop Bouquet</figcaption>
+    </figure>
+    <figure class="mood-item" data-full="flowers/11-smoke-bush.jpg" style="--r: 1.334; --s: 0.84">
+      <div class="mood-thumb"><img src="flowers/11-smoke-bush.jpg" width="1706" height="1279" alt="Smoke Bush" loading="lazy"></div>
+      <figcaption>Smoke Bush</figcaption>
+    </figure>
+    <figure class="mood-item" data-full="flowers/12-gerbera.jpg" style="--r: 1.334; --s: 0.64">
+      <div class="mood-thumb"><img src="flowers/12-gerbera.jpg" width="1706" height="1279" alt="Gerbera" loading="lazy"></div>
+      <figcaption>Gerbera</figcaption>
+    </figure>
+    <figure class="mood-item" data-full="flowers/13-peony-red.jpg" style="--r: 0.750; --s: 1">
+      <div class="mood-thumb"><img src="flowers/13-peony-red.jpg" width="1279" height="1706" alt="Red Peony" loading="lazy"></div>
+      <figcaption>Red Peony</figcaption>
+    </figure>
+    <figure class="mood-item" data-full="flowers/14-hydrangea.jpg" style="--r: 1.334; --s: 0.62">
+      <div class="mood-thumb"><img src="flowers/14-hydrangea.jpg" width="1706" height="1279" alt="Hydrangea" loading="lazy"></div>
+      <figcaption>Hydrangea</figcaption>
+    </figure>
+    <figure class="mood-item" data-full="flowers/15-roses.jpg" style="--r: 1.334; --s: 0.86">
+      <div class="mood-thumb"><img src="flowers/15-roses.jpg" width="1706" height="1279" alt="Roses" loading="lazy"></div>
+      <figcaption>Roses</figcaption>
+    </figure>
+  </div>
+  </section>
+</main>
+
+<main class="view" id="view-publications">
+  <!-- 一排 6 个小方块(pub 文件夹里的图),等距排开,上下微微错落 -->
+  <div class="pub-scatter" aria-hidden="true">
+    <img class="pub-square" src="pub/WechatIMG664-web.jpg" data-full="pub/WechatIMG664.jpg" alt="" style="left: 6%; top: 66%">
+    <img class="pub-square" src="pub/WechatIMG5586-web.jpg" data-full="pub/WechatIMG5586.jpg" alt="" style="left: 21.5%; top: 68.5%">
+    <img class="pub-square" src="pub/WechatIMG661-web.jpg" data-full="pub/WechatIMG661.jpg" alt="" style="left: 37%; top: 65.5%">
+    <img class="pub-square" src="pub/WechatIMG662-web.jpg" data-full="pub/WechatIMG662.jpg" alt="" style="left: 52.5%; top: 68%">
+    <img class="pub-square" src="pub/WechatIMG663-web.jpg" data-full="pub/WechatIMG663.jpg" alt="" style="left: 68%; top: 66%">
+    <img class="pub-square" src="pub/WechatIMG660-web.jpg" data-full="pub/WechatIMG660.jpg" alt="" style="left: 83.5%; top: 68%">
+  </div>
+  <!-- 两栏目录:左栏放已发表的论文(以后再加),右栏是 Working Paper -->
+  <div class="tracklist">
+    <section>
+      <h2>Publications</h2>
+    </section>
+    <section>
+      <h2>Working Papers</h2>
+      <ul>
+        <li>
+          <a data-page="papers" data-paper="llm-saa">LLM-SAA: LLM-persona Generated Distributions for Decision-making</a>
+          <span class="with">with Jackie Baek, Ziyu Chi, Will Ma</span>
+        </li>
+      </ul>
+    </section>
+  </div>
+</main>
+
+<main class="view" id="view-talks">
+  <!-- 三栏表格:论文 / 报告场合 / 时间(时间待补,写在第三个 span 里) -->
+  <div class="talks-table">
+    <div class="talk-row talk-head">
+      <span>Papers</span>
+      <span>Talks</span>
+      <span>Date</span>
+    </div>
+    <div class="talk-row">
+      <span>LLM-SAA: LLM-persona Generated Distributions for Decision-making</span>
+      <span>Eleventh Marketplace Innovation Workshop (MIW 2026)</span>
+      <span>2026.05</span>
+    </div>
+    <div class="talk-row">
+      <span></span>
+      <span>Econometric Society Interdisciplinary Frontiers: Economics and AI+ML Conference, 2026</span>
+      <span>2026.07</span>
+    </div>
+    <div class="talk-row">
+      <span></span>
+      <span>INFORMS Revenue Management and Pricing Section Conference (RMP 2026), 2026</span>
+      <span>2026.08</span>
+    </div>
+    <div class="talk-row">
+      <span></span>
+      <span>INFORMS Annual, 2026</span>
+      <span>2026.11</span>
+    </div>
   </div>
 </main>
 
@@ -499,6 +1066,18 @@
     <div class="page-header">
       <h1>PAINTINGS</h1>
     </div>
+
+    <!-- 单独展出的一张:左边画,右边展签 -->
+    <section class="feature feature-reverse feature-portrait">
+      <figure class="art" data-full="paintings/2026.11.04-guangzhou-dim-sum.jpg">
+        <div class="mat"><img src="paintings/2026.11.04-guangzhou-dim-sum.jpg" width="1080" height="1080" alt="Cantonese dim sum and tea in Guangzhou" loading="lazy"></div>
+      </figure>
+      <div class="wall-label">
+        <h3>Morning Tea in Guangzhou</h3>
+        <p class="meta">2026.11.04</p>
+        <p>I went to Guangzhou to visit my friend Zhuoxin, and we had the most authentic Cantonese morning tea. The dim sum felt moister and springier than what I’ve had elsewhere—perhaps it’s the climate.</p>
+      </div>
+    </section>
 
     <!-- 单独展出的一张:左边画,右边展签 -->
     <section class="feature">
@@ -661,6 +1240,48 @@
   </div>
 </div>
 
+<div class="page page-paper" id="page-papers">
+  <!-- 背景图:跟着当前选中的论文换 -->
+  <div class="paper-bg"></div>
+  <button class="back">back</button>
+  <div class="paper-page">
+    <nav class="paper-index">
+      <h2>Working Papers</h2>
+      <ol>
+        <!-- 加新论文:复制一个 li,改 data-paper(和右边 article 的 data-paper 一致)和 data-bg(背景图) -->
+        <li data-paper="llm-saa" data-bg="papers/WechatIMG5571.jpg"><span>01.</span>LLM-SAA: LLM-persona Generated Distributions for Decision-making</li>
+      </ol>
+    </nav>
+
+    <div class="paper-details">
+      <article class="paper-detail" data-paper="llm-saa">
+        <section>
+          <p class="paper-link">Full paper here: <a href="https://arxiv.org/abs/2602.06357" target="_blank" rel="noopener noreferrer">Link</a></p>
+        </section>
+
+        <section>
+          <h3>Abstract</h3>
+          <p>LLMs can generate a wealth of data, ranging from simulated personas imitating human valuations and preferences, to demand forecasts based on world knowledge. But how well do such LLM-generated distributions support downstream decision-making? For example, when pricing a new product, a firm could prompt an LLM to simulate how much consumers are willing to pay based on a product description, but how useful is the resulting distribution for optimizing the price? We refer to this approach as LLM-SAA, in which an LLM is used to construct an estimated distribution and the decision is then optimized under that distribution. In this paper, we study metrics to evaluate the quality of these LLM-generated distributions, based on the decisions they induce. Taking three canonical decision-making problems (assortment optimization, pricing, and newsvendor) as examples, we find that LLM-generated distributions are practically useful, especially in low-data regimes. We also show that decision-agnostic metrics such as Wasserstein distance can be misleading when evaluating these distributions for decision-making.</p>
+        </section>
+
+        <section>
+          <h3>Coauthors</h3>
+          <!-- 单位照 arXiv 论文原文的署名 -->
+          <ul class="coauthors">
+            <li>Jackie Baek<span>Stern School of Business, New York University</span></li>
+            <li>Ziyu Chi<span>Stern School of Business, New York University</span></li>
+            <li>Will Ma<span>Graduate School of Business and Data Science Institute, Columbia University</span></li>
+          </ul>
+        </section>
+
+        <section class="paper-venue">
+          <p>Accepted at the NeurIPS 2026 Workshop on ML×OR</p>
+        </section>
+      </article>
+    </div>
+  </div>
+</div>
+
 <div class="page page-food" id="page-food">
   <button class="back">back</button>
   <div class="page-inner">
@@ -672,13 +1293,28 @@
   </div>
 </div>
 
+<!-- 作品介绍:点 moodboard 里有介绍的作品时打开,做成一本翻开的书,左页画、右页文字 -->
+<div class="note-view" id="note-view">
+  <button class="back note-close">back</button>
+  <div class="book">
+    <div class="book-page book-left">
+      <div class="book-plate"><img src="" alt="" id="note-img"></div>
+      <p class="book-foot"><span id="note-title"></span><br><span class="book-sub" id="note-date"></span></p>
+    </div>
+    <div class="book-page book-right">
+      <div class="wall-label" id="note-label"></div>
+      <p class="book-foot">Yunhan Chen<br><span class="book-sub" id="note-kind"></span></p>
+    </div>
+  </div>
+</div>
+
 <!-- 放大查看的 lightbox -->
 <div class="lightbox" id="lightbox">
   <img src="" alt="" id="lightbox-img">
 </div>
 
 <script>
-  const navLinks = document.querySelectorAll('.topbar a');
+  const navLinks = document.querySelectorAll('[data-view]');
   const views = document.querySelectorAll('.view');
   const pages = document.querySelectorAll('.page');
 
@@ -687,13 +1323,23 @@
     document.body.style.overflow = '';
   }
 
+  // 开屏:点一下进入
+  const splash = document.getElementById('splash');
+  document.body.style.overflow = 'hidden';
+  splash.addEventListener('click', () => {
+    splash.classList.add('gone');
+    document.body.style.overflow = '';
+  });
+
   // 页眉切换 Home / More
   navLinks.forEach(a => {
     a.addEventListener('click', () => {
-      navLinks.forEach(l => l.classList.toggle('active', l === a));
+      navLinks.forEach(l => l.classList.toggle('active', l.dataset.view === a.dataset.view));
       views.forEach(v => v.classList.toggle('active', v.id === 'view-' + a.dataset.view));
       closePages();
-      window.scrollTo(0, 0);
+      const target = a.dataset.scroll && document.getElementById(a.dataset.scroll);
+      if (target) target.scrollIntoView();
+      else window.scrollTo(0, 0);
     });
   });
 
@@ -702,11 +1348,57 @@
     a.addEventListener('click', () => {
       const page = document.getElementById('page-' + a.dataset.page);
       if (page) {
+        if (a.dataset.paper) selectPaper(a.dataset.paper);
         page.classList.add('open');
         document.body.style.overflow = 'hidden';
       }
     });
   });
+
+  // More 的 moodboard:每张图有自己的大小(--s,80%–100%),同一行底边对齐、高低错落;
+  // 按目标行高分行,再把整行等比缩放到刚好排满一行,间距都一样
+  function layoutMood(board) {
+    const W = board.clientWidth - 8;
+    if (!W) return;
+    const style = getComputedStyle(board);
+    const gap = parseFloat(style.columnGap);
+    const target = window.innerWidth < 640 ? 150 : 260;
+    const items = [...board.querySelectorAll('.mood-item')];
+    let row = [], sum = 0;
+    const ratio = it => parseFloat(it.style.getPropertyValue('--r')) * parseFloat(it.style.getPropertyValue('--s'));
+    const place = (list, h) => list.forEach(it => {
+      const sc = parseFloat(it.style.getPropertyValue('--s'));
+      it.style.width = (ratio(it) * h) + 'px';
+      it.querySelector('.mood-thumb').style.height = h + 'px';
+      it.querySelector('img').style.height = (sc * h) + 'px';
+    });
+    items.forEach(it => {
+      row.push(it);
+      sum += ratio(it);
+      const full = sum * target + gap * (row.length - 1);
+      if (full >= W) {
+        place(row, (W - gap * (row.length - 1) - 1) / sum);
+        row = []; sum = 0;
+      }
+    });
+    if (row.length) place(row, target);
+  }
+  const moodObserver = new ResizeObserver(entries => entries.forEach(e => layoutMood(e.target)));
+  document.querySelectorAll('.moodboard').forEach(b => moodObserver.observe(b));
+
+  // 论文页:左边目录和右边内容通过 data-paper 对应,背景图跟着换
+  const paperBg = document.querySelector('.paper-bg');
+  function selectPaper(id) {
+    document.querySelectorAll('.paper-index li, .paper-detail').forEach(el => {
+      el.classList.toggle('current', el.dataset.paper === id);
+    });
+    const li = document.querySelector(`.paper-index li[data-paper="${id}"]`);
+    if (li) paperBg.style.backgroundImage = `url('${li.dataset.bg}')`;
+  }
+  document.querySelectorAll('.paper-index li').forEach(li => {
+    li.addEventListener('click', () => selectPaper(li.dataset.paper));
+  });
+  selectPaper(document.querySelector('.paper-index li').dataset.paper);
 
   document.querySelectorAll('.back').forEach(b => b.addEventListener('click', closePages));
 
@@ -742,7 +1434,7 @@
   // lightbox 画作放大
   const lightbox = document.getElementById('lightbox');
   const lightboxImg = document.getElementById('lightbox-img');
-  document.querySelectorAll('.art, .flower').forEach(p => {
+  document.querySelectorAll('.art, .flower, .mood-item:not(.has-note), .pub-square').forEach(p => {
     p.addEventListener('click', () => {
       lightboxImg.src = p.dataset.full || p.querySelector('img').src;
       lightbox.classList.add('open');
@@ -750,10 +1442,29 @@
   });
   lightbox.addEventListener('click', () => lightbox.classList.remove('open'));
 
+  // 有介绍的作品:展签内容直接取 paintings 页里对应作品的那一份,只维护一处
+  const noteView = document.getElementById('note-view');
+  document.querySelectorAll('.mood-item.has-note').forEach(item => {
+    item.addEventListener('click', () => {
+      const art = document.querySelector(`.feature .art[data-full="${item.dataset.full}"]`);
+      document.getElementById('note-img').src = item.dataset.full;
+      document.getElementById('note-title').textContent = item.querySelector('img').alt;
+      document.getElementById('note-kind').textContent = item.querySelector('figcaption span').textContent;
+      document.getElementById('note-date').textContent = item.querySelector('figcaption').firstChild.textContent;
+      document.getElementById('note-label').innerHTML = art.closest('.feature').querySelector('.wall-label').innerHTML;
+      noteView.classList.add('open');
+    });
+  });
+  noteView.querySelector('.note-close').addEventListener('click', () => noteView.classList.remove('open'));
+
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
     if (lightbox.classList.contains('open')) {
       lightbox.classList.remove('open');
+      return;
+    }
+    if (noteView.classList.contains('open')) {
+      noteView.classList.remove('open');
       return;
     }
     closePages();
