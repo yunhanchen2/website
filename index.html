@@ -1319,40 +1319,66 @@
   const views = document.querySelectorAll('.view');
   const pages = document.querySelectorAll('.page');
 
-  function closePages() {
-    pages.forEach(p => p.classList.remove('open'));
-    document.body.style.overflow = '';
-  }
-
   // 开屏:点一下进入
   const splash = document.getElementById('splash');
   document.body.style.overflow = 'hidden';
   splash.addEventListener('click', () => {
     splash.classList.add('gone');
-    document.body.style.overflow = '';
+    render(history.state || stateFromHash());
   });
 
-  // 页眉切换 Home / More
-  navLinks.forEach(a => {
-    a.addEventListener('click', () => {
-      navLinks.forEach(l => l.classList.toggle('active', l.dataset.view === a.dataset.view));
-      views.forEach(v => v.classList.toggle('active', v.id === 'view-' + a.dataset.view));
-      closePages();
-      const target = a.dataset.scroll && document.getElementById(a.dataset.scroll);
+  // ---- 浏览记录:每次切换页面都记一笔,浏览器的返回键可以一步步退回,不会直接退出网站 ----
+  // 状态 = { view, page, paper, note, lb };地址栏用 # 表示当前页,可以直接分享链接
+  function stateFromHash() {
+    const h = decodeURIComponent(location.hash.slice(1));
+    if (h.startsWith('paper/')) return { view: 'publications', page: 'papers', paper: h.slice(6) };
+    if (h.startsWith('note/')) return { view: 'more', note: h.slice(5) };
+    if (['publications', 'talks', 'more'].includes(h)) return { view: h };
+    return { view: 'home' };
+  }
+  function hashFor(st) {
+    if (st.page === 'papers') return '#paper/' + st.paper;
+    if (st.note) return '#note/' + encodeURIComponent(st.note);
+    return st.view === 'home' ? location.pathname : '#' + st.view;
+  }
+  function render(st) {
+    navLinks.forEach(l => l.classList.toggle('active', l.dataset.view === st.view));
+    views.forEach(v => v.classList.toggle('active', v.id === 'view-' + st.view));
+    pages.forEach(p => p.classList.toggle('open', p.id === 'page-' + st.page));
+    if (st.paper) selectPaper(st.paper);
+    showNote(st.note);
+    if (st.lb) lightboxImg.src = st.lb;
+    lightbox.classList.toggle('open', !!st.lb);
+    document.body.style.overflow = (st.page || st.note || !splash.classList.contains('gone')) ? 'hidden' : '';
+  }
+  // 去一个新状态:在当前状态的基础上改几项,并记进浏览记录
+  function go(changes, scrollTarget) {
+    const cur = history.state || stateFromHash();
+    const st = { ...cur, ...changes, depth: (cur.depth || 0) + 1 };
+    history.pushState(st, '', hashFor(st));
+    render(st);
+    if (changes.view) {
+      const target = scrollTarget && document.getElementById(scrollTarget);
       if (target) target.scrollIntoView();
       else window.scrollTo(0, 0);
-    });
+    }
+  }
+  // 关掉当前这一层(back 按钮、Esc、点放大图):有记录就退一步,没有就直接回到上一层
+  function goBack(fallback) {
+    if ((history.state || {}).depth > 0) history.back();
+    else { const st = { ...stateFromHash(), ...fallback, depth: 0 }; history.replaceState(st, '', hashFor(st)); render(st); }
+  }
+  window.addEventListener('popstate', e => render(e.state || stateFromHash()));
+
+  // 页眉切换 Home / Publications / Talks / More
+  navLinks.forEach(a => {
+    a.addEventListener('click', () => go({ view: a.dataset.view, page: null, paper: null, note: null, lb: null }, a.dataset.scroll));
   });
 
-  // More 页里打开画作 / 花
+  // 打开论文页等单独的页面
   document.querySelectorAll('[data-page]').forEach(a => {
     a.addEventListener('click', () => {
-      const page = document.getElementById('page-' + a.dataset.page);
-      if (page) {
-        if (a.dataset.paper) selectPaper(a.dataset.paper);
-        page.classList.add('open');
-        document.body.style.overflow = 'hidden';
-      }
+      if (document.getElementById('page-' + a.dataset.page)) go({ page: a.dataset.page, paper: a.dataset.paper || null });
     });
   });
 
@@ -1401,7 +1427,7 @@
   });
   selectPaper(document.querySelector('.paper-index li').dataset.paper);
 
-  document.querySelectorAll('.back').forEach(b => b.addEventListener('click', closePages));
+  document.querySelectorAll('.page .back').forEach(b => b.addEventListener('click', () => goBack({ page: null, paper: null })));
 
   // paintings 瀑布流:按顺序把每张画放进当前最矮的一列,保持从左到右、从新到旧
   const galleries = [...document.querySelectorAll('.gallery')].map(g => ({
@@ -1436,40 +1462,42 @@
   const lightbox = document.getElementById('lightbox');
   const lightboxImg = document.getElementById('lightbox-img');
   document.querySelectorAll('.art, .flower, .mood-item:not(.has-note), .pub-square').forEach(p => {
-    p.addEventListener('click', () => {
-      lightboxImg.src = p.dataset.full || p.querySelector('img').src;
-      lightbox.classList.add('open');
-    });
+    p.addEventListener('click', () => go({ lb: p.dataset.full || p.querySelector('img').src }));
   });
-  lightbox.addEventListener('click', () => lightbox.classList.remove('open'));
+  lightbox.addEventListener('click', () => goBack({ lb: null }));
 
   // 有介绍的作品:展签内容直接取 paintings 页里对应作品的那一份,只维护一处
   const noteView = document.getElementById('note-view');
+  function showNote(src) {
+    const item = src && document.querySelector(`.mood-item.has-note[data-full="${src}"]`);
+    if (!item) { noteView.classList.remove('open'); return; }
+    const art = document.querySelector(`.feature .art[data-full="${src}"]`);
+    document.getElementById('note-img').src = src;
+    document.getElementById('note-title').textContent = item.querySelector('img').alt;
+    document.getElementById('note-kind').textContent = item.querySelector('figcaption span').textContent;
+    document.getElementById('note-date').textContent = item.querySelector('figcaption').firstChild.textContent;
+    document.getElementById('note-label').innerHTML = art.closest('.feature').querySelector('.wall-label').innerHTML;
+    noteView.classList.add('open');
+  }
   document.querySelectorAll('.mood-item.has-note').forEach(item => {
-    item.addEventListener('click', () => {
-      const art = document.querySelector(`.feature .art[data-full="${item.dataset.full}"]`);
-      document.getElementById('note-img').src = item.dataset.full;
-      document.getElementById('note-title').textContent = item.querySelector('img').alt;
-      document.getElementById('note-kind').textContent = item.querySelector('figcaption span').textContent;
-      document.getElementById('note-date').textContent = item.querySelector('figcaption').firstChild.textContent;
-      document.getElementById('note-label').innerHTML = art.closest('.feature').querySelector('.wall-label').innerHTML;
-      noteView.classList.add('open');
-    });
+    item.addEventListener('click', () => go({ note: item.dataset.full }));
   });
-  noteView.querySelector('.note-close').addEventListener('click', () => noteView.classList.remove('open'));
+  noteView.querySelector('.note-close').addEventListener('click', () => goBack({ note: null }));
 
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
-    if (lightbox.classList.contains('open')) {
-      lightbox.classList.remove('open');
-      return;
-    }
-    if (noteView.classList.contains('open')) {
-      noteView.classList.remove('open');
-      return;
-    }
-    closePages();
+    if (lightbox.classList.contains('open')) goBack({ lb: null });
+    else if (noteView.classList.contains('open')) goBack({ note: null });
+    else if (document.querySelector('.page.open')) goBack({ page: null, paper: null });
   });
+
+  // 打开网站时:地址里带了 # 就直接进到那一页(跳过开屏),否则显示开屏
+  {
+    const st = { ...stateFromHash(), depth: 0 };
+    if (location.hash) splash.classList.add('gone');
+    history.replaceState(st, '', location.hash ? hashFor(st) : location.pathname);
+    render(st);
+  }
 </script>
 </body>
 </html>
